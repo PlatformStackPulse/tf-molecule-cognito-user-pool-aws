@@ -31,9 +31,3 @@ variable "logout_urls" {
   default     = []
   description = "Allowed logout URLs for the app client"
 }
-
-variable "tags" {
-  type        = map(string)
-  default     = {}
-  description = "Tags to apply to all resources"
-}
