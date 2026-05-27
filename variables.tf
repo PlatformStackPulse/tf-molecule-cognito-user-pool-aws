@@ -1,7 +1,39 @@
 # -----------------------------------------------------------------------------
 # Module-Specific Variables
-#
-# Note: Standard labeling variables (enabled, namespace, tenant, environment,
-# stage, name, delimiter, attributes, tags, label_order, etc.) are provided
-# by context.tf via the tf-label module.
 # -----------------------------------------------------------------------------
+
+variable "pool_name" {
+  type        = string
+  description = "Name of the Cognito User Pool"
+}
+
+variable "google_client_id" {
+  type        = string
+  default     = ""
+  description = "Google OAuth 2.0 client ID for social login"
+}
+
+variable "google_client_secret" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "Google OAuth 2.0 client secret"
+}
+
+variable "callback_urls" {
+  type        = list(string)
+  default     = []
+  description = "Allowed callback URLs for the app client"
+}
+
+variable "logout_urls" {
+  type        = list(string)
+  default     = []
+  description = "Allowed logout URLs for the app client"
+}
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Tags to apply to all resources"
+}
