@@ -29,6 +29,19 @@ resource "aws_cognito_user_pool" "this" {
     }
   }
 
+  schema {
+    attribute_data_type      = "String"
+    name                     = "role"
+    required                 = false
+    mutable                  = true
+    developer_only_attribute = false
+
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 50
+    }
+  }
+
   tags = var.tags
 }
 
@@ -40,13 +53,14 @@ resource "aws_cognito_user_pool_client" "this" {
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH",
     "ALLOW_USER_PASSWORD_AUTH",
+    "ALLOW_ADMIN_USER_PASSWORD_AUTH",
   ]
 
-  supported_identity_providers = var.google_client_id != "" ? ["Google", "COGNITO"] : ["COGNITO"]
-  callback_urls                = var.callback_urls
-  logout_urls                  = var.logout_urls
-  allowed_oauth_flows          = ["code"]
-  allowed_oauth_scopes         = ["openid", "email", "profile"]
+  supported_identity_providers         = var.google_client_id != "" ? ["Google", "COGNITO"] : ["COGNITO"]
+  callback_urls                        = var.callback_urls
+  logout_urls                          = var.logout_urls
+  allowed_oauth_flows                  = ["code"]
+  allowed_oauth_scopes                 = ["openid", "email", "profile"]
   allowed_oauth_flows_user_pool_client = true
 
   generate_secret = false
