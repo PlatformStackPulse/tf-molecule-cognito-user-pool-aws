@@ -43,7 +43,7 @@ resource "aws_cognito_user_pool" "this" {
     }
   }
 
-  tags = var.tags
+  tags = module.this.tags
 }
 
 resource "aws_cognito_user_pool_client" "this" {
@@ -114,7 +114,7 @@ resource "aws_secretsmanager_secret" "internal_user_bootstrap" {
   for_each = var.internal_users
 
   name = "${var.pool_name}/internal-users/${each.key}/bootstrap"
-  tags = var.tags
+  tags = module.this.tags
 }
 
 resource "aws_secretsmanager_secret_version" "internal_user_bootstrap" {

@@ -54,9 +54,3 @@ variable "internal_user_domain" {
   type        = string
   default     = "internal.local"
 }
-
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default     = {}
-}
