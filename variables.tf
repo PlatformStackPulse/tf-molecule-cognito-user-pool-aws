@@ -31,3 +31,32 @@ variable "logout_urls" {
   default     = []
   description = "Allowed logout URLs for the app client"
 }
+
+variable "user_groups" {
+  description = "Map of user groups to create (key = group name)"
+  type = map(object({
+    description = string
+    precedence  = number
+  }))
+  default = {}
+}
+
+variable "internal_users" {
+  description = "Map of internal users to seed (key = username prefix)"
+  type = map(object({
+    role = string
+  }))
+  default = {}
+}
+
+variable "internal_user_domain" {
+  description = "Email domain for internal users (e.g., 'xpeeddating.com')"
+  type        = string
+  default     = "internal.local"
+}
+
+variable "tags" {
+  description = "Tags to apply to resources"
+  type        = map(string)
+  default     = {}
+}

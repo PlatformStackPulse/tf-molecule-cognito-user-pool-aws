@@ -1,6 +1,7 @@
 # =============================================================================
 # Cognito User Pool Molecule
 # Composes: User Pool + App Client + Domain + Google Identity Provider
+#           + User Groups + Internal (Seeded) Users
 # =============================================================================
 
 resource "aws_cognito_user_pool" "this" {
@@ -83,4 +84,73 @@ resource "aws_cognito_identity_provider" "google" {
     email    = "email"
     username = "sub"
   }
+}
+
+# =============================================================================
+# User Groups
+# =============================================================================
+
+resource "aws_cognito_user_group" "roles" {
+  for_each = var.user_groups
+
+  name         = each.key
+  user_pool_id = aws_cognito_user_pool.this.id
+  description  = each.value.description
+  precedence   = each.value.precedence
+}
+
+# =============================================================================
+# Internal (Seeded) Users
+# =============================================================================
+
+resource "random_password" "internal_user" {
+  for_each = var.internal_users
+
+  length  = 16
+  special = true
+}
+
+resource "aws_secretsmanager_secret" "internal_user_bootstrap" {
+  for_each = var.internal_users
+
+  name = "${var.pool_name}/internal-users/${each.key}/bootstrap"
+  tags = var.tags
+}
+
+resource "aws_secretsmanager_secret_version" "internal_user_bootstrap" {
+  for_each = var.internal_users
+
+  secret_id = aws_secretsmanager_secret.internal_user_bootstrap[each.key].id
+  secret_string = jsonencode({
+    username = "${each.key}@${var.internal_user_domain}"
+    password = random_password.internal_user[each.key].result
+    role     = each.value.role
+  })
+}
+
+resource "aws_cognito_user" "internal" {
+  for_each = var.internal_users
+
+  user_pool_id = aws_cognito_user_pool.this.id
+  username     = "${each.key}@${var.internal_user_domain}"
+
+  attributes = {
+    email          = "${each.key}@${var.internal_user_domain}"
+    email_verified = "true"
+    "custom:role"  = each.value.role
+  }
+
+  temporary_password = random_password.internal_user[each.key].result
+
+  depends_on = [aws_cognito_user_group.roles]
+}
+
+resource "aws_cognito_user_in_group" "internal" {
+  for_each = var.internal_users
+
+  user_pool_id = aws_cognito_user_pool.this.id
+  username     = aws_cognito_user.internal[each.key].username
+  group_name   = each.value.role
+
+  depends_on = [aws_cognito_user.internal, aws_cognito_user_group.roles]
 }
