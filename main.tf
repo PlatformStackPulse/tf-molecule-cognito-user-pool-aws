@@ -147,7 +147,7 @@ resource "aws_cognito_user" "internal" {
     "custom:role"  = each.value.role
   }
 
-  temporary_password = random_password.internal_user[each.key].result
+  password = random_password.internal_user[each.key].result
 
   depends_on = [aws_cognito_user_group.roles]
 }
