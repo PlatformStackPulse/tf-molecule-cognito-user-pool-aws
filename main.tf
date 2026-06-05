@@ -106,8 +106,15 @@ resource "aws_cognito_user_group" "roles" {
 resource "random_password" "internal_user" {
   for_each = var.internal_users
 
-  length  = 16
-  special = true
+  length           = 16
+  special          = true
+  numeric          = true
+  upper            = true
+  lower            = true
+  min_numeric      = 2
+  min_upper        = 2
+  min_special      = 1
+  override_special = "!@#$%^&*"
 }
 
 resource "aws_secretsmanager_secret" "internal_user_bootstrap" {
