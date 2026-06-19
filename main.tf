@@ -57,7 +57,15 @@ resource "aws_cognito_user_pool_client" "this" {
     "ALLOW_ADMIN_USER_PASSWORD_AUTH",
   ]
 
-  supported_identity_providers         = var.google_client_id != "" ? ["Google", "COGNITO"] : ["COGNITO"]
+  supported_identity_providers = concat(
+    compact([
+      var.google_client_id != "" ? "Google" : "",
+      var.facebook_client_id != "" ? "Facebook" : "",
+      var.apple_services_id != "" ? "SignInWithApple" : "",
+      var.oidc_x_client_id != "" ? "X" : "",
+    ]),
+    ["COGNITO"],
+  )
   callback_urls                        = var.callback_urls
   logout_urls                          = var.logout_urls
   allowed_oauth_flows                  = ["code"]
@@ -65,6 +73,14 @@ resource "aws_cognito_user_pool_client" "this" {
   allowed_oauth_flows_user_pool_client = true
 
   generate_secret = false
+
+  # Identity providers must exist before the client can list them.
+  depends_on = [
+    aws_cognito_identity_provider.google,
+    aws_cognito_identity_provider.facebook,
+    aws_cognito_identity_provider.apple,
+    aws_cognito_identity_provider.x,
+  ]
 }
 
 resource "aws_cognito_identity_provider" "google" {
@@ -78,6 +94,68 @@ resource "aws_cognito_identity_provider" "google" {
     client_id        = var.google_client_id
     client_secret    = var.google_client_secret
     authorize_scopes = "openid email profile"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+  }
+}
+
+resource "aws_cognito_identity_provider" "facebook" {
+  count = var.facebook_client_id != "" ? 1 : 0
+
+  user_pool_id  = aws_cognito_user_pool.this.id
+  provider_name = "Facebook"
+  provider_type = "Facebook"
+
+  provider_details = {
+    client_id        = var.facebook_client_id
+    client_secret    = var.facebook_client_secret
+    authorize_scopes = "public_profile,email"
+    api_version      = "v17.0"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "id"
+  }
+}
+
+resource "aws_cognito_identity_provider" "apple" {
+  count = var.apple_services_id != "" ? 1 : 0
+
+  user_pool_id  = aws_cognito_user_pool.this.id
+  provider_name = "SignInWithApple"
+  provider_type = "SignInWithApple"
+
+  provider_details = {
+    client_id        = var.apple_services_id
+    team_id          = var.apple_team_id
+    key_id           = var.apple_key_id
+    private_key      = var.apple_private_key
+    authorize_scopes = "email name"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+  }
+}
+
+resource "aws_cognito_identity_provider" "x" {
+  count = var.oidc_x_client_id != "" ? 1 : 0
+
+  user_pool_id  = aws_cognito_user_pool.this.id
+  provider_name = "X"
+  provider_type = "OIDC"
+
+  provider_details = {
+    client_id                 = var.oidc_x_client_id
+    client_secret             = var.oidc_x_client_secret
+    oidc_issuer               = var.oidc_x_issuer
+    authorize_scopes          = "openid email profile"
+    attributes_request_method = "GET"
   }
 
   attribute_mapping = {
