@@ -83,6 +83,16 @@ resource "aws_cognito_user_pool_client" "this" {
   ]
 }
 
+# Hosted-UI / OAuth2 domain (https://<prefix>.auth.<region>.amazoncognito.com).
+# Optional: created only when a prefix is supplied, so consumers that don't use
+# the Hosted UI are unaffected. This is the host for /oauth2/authorize and
+# /oauth2/token used by the social-login (Cognito-brokered) flow.
+resource "aws_cognito_user_pool_domain" "this" {
+  count        = var.hosted_ui_domain_prefix != "" ? 1 : 0
+  domain       = var.hosted_ui_domain_prefix
+  user_pool_id = aws_cognito_user_pool.this.id
+}
+
 resource "aws_cognito_identity_provider" "google" {
   count = var.google_client_id != "" ? 1 : 0
 

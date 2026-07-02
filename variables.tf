@@ -111,3 +111,9 @@ variable "internal_user_domain" {
   type        = string
   default     = "internal.local"
 }
+
+variable "hosted_ui_domain_prefix" {
+  description = "Cognito Hosted-UI prefix domain (e.g. 'xpd-dev-auth' → https://xpd-dev-auth.auth.<region>.amazoncognito.com). Empty = no Hosted-UI domain is created (consumers that don't federate via the Hosted UI are unaffected)."
+  type        = string
+  default     = ""
+}

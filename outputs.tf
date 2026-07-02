@@ -17,3 +17,8 @@ output "client_id" {
   description = "The ID of the Cognito User Pool app client"
   value       = aws_cognito_user_pool_client.this.id
 }
+
+output "hosted_ui_domain" {
+  description = "The Cognito Hosted-UI prefix domain (empty when none is configured)."
+  value       = one(aws_cognito_user_pool_domain.this[*].domain)
+}
